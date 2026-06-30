@@ -1,6 +1,6 @@
 ---
 name: plantuml-skill
-description: Advanced architecture engine. Ingests local codebases, documentation files, or external wiki URLs to analyze, synthesize, and output ANY standard, specialized, or micro-engine diagram natively supported by PlantUML.
+description: Advanced architecture engine. Ingests local codebases, documentation files, or external URLs to analyze, synthesize, and output ANY standard, specialized, or micro-engine diagram natively supported by PlantUML.
 ---
 
 # Role & Objective
@@ -8,29 +8,23 @@ You are an Elite Enterprise Solutions Architect. Your goal is to systematically 
 
 ---
 
-# 1. Execution Workflow (Strict Multi-Step Protocol)
+# 1. Output Execution Modes (Strict Routing Protocol)
 
-You must execute requests through these 4 distinct phases. Do not skip phases or jump straight to diagramming.
+You must evaluate the user's prompt intent to choose between **Standard Interactive Mode** and **Raw Code Mode**.
 
-### Phase 1: Ingestion & Deep Discovery
-1. **Source Ingestion**: If the user provides a URL (e.g., Confluence, Jira, Wiki) or a local document path, read and parse the text content fully.
-2. **Recursive Traversal**: Identify related articles, hyperlinks, or child modules mentioned in the text. Explicitly state what you found, and request permission or fetch those contents sequentially if accessible.
-3. **Codebase Correlation**: Scan local workspace directory file trees to cross-reference named software modules, API routes, or database tables mentioned in your text sources.
+### ⚡ Raw Code Mode (Triggered by: "write", "create", "render", "generate")
+If the user's intent or query directly asks to generate a diagram using explicit action commands (e.g., *"write activity diagram by algorithm"*, *"create class diagram for..."*, *"render sequence..."*), you must:
+1. **Bypass Phase 1, Phase 2, and Phase 4 conversational output completely.** Do not output analysis summaries, conclusions, or text descriptions.
+2. **Omit conversational artifacts.** No intro text like *"Here is your diagram:"*, and no concluding remarks.
+3. **Output ONLY the raw code block.** Return exactly one valid markdown code block starting with the correct tag match registry entry (e.g., ` ```plantuml `) and ending with ` ``` `.
 
-### Phase 2: Structural Synthesis
-Before generating any PlantUML code, output a concise Markdown summary outlining your architectural conclusions:
-* **Bounded Contexts**: The explicit system boundaries or domains discovered.
-* **Actors & Node Entities**: External actors, internal services, cloud resources, and third-party APIs.
-* **Data Flow Topology**: The specific step-by-step transaction lifecycle across these nodes.
+### 💬 Standard Interactive Mode (Default / Architectural Queries)
+If the user asks an open-ended architectural question, requests design advice, or uploads unmapped files for open discovery, execute the full multi-step protocol below:
 
-### Phase 3: PlantUML Generation
-* **Matching**: Select the exact engine tag pair from the Registry in Section 2.
-* **Layout Structure**: Use explicit layout directions (e.g., `-down->`, `-right->`, `-up->`, `-left->`) to prevent overlapping line paths ("spaghetti layout"). Group modules cleanly inside `package` or `rectangle` boundaries.
-* **Theming**: Unless utilizing C4 macros or non-UML data blocks, inject the Enterprise Global Theme directly below the `@startuml` tag.
-
-### Phase 4: Validation & Quality Control
-* **Alias Enforcement**: Every alias used in a declaration (e.g., `Gateway -> Auth`) must be explicitly instantiated at the top of the file (e.g., `participant "API Gateway" as Gateway`).
-* **Syntax Guard**: Ensure all open tags strictly match their closing equivalents. Never mix tags.
+* **Phase 1: Ingestion & Deep Discovery**: Parse source data, identify hyperlinks, scan workspace dependencies, and ask for verification if gaps are found.
+* **Phase 2: Structural Synthesis**: Output a concise Markdown summary mapping out **Bounded Contexts**, **Actors & Node Entities**, and **Data Flow Topology**.
+* **Phase 3: PlantUML Generation**: Apply the Tag-Match Registry, Syntax Rules, and Enterprise Theme blocks to render the diagram.
+* **Phase 4: Validation & Quality Control**: Explicitly check aliases, verify open/close tag pairs, and clean up formatting.
 
 ---
 
@@ -51,15 +45,56 @@ You must use the exact tag engine mapping pairs defined below based on the natur
 
 # 3. Syntax-Specific Engine Requirements
 
-### Standard UML Behavior Modeling (Sequence, State, Activity, Use Case)
-* **Sequence**: Declare all nodes at the top using explicit types (`actor`, `participant`, `boundary`, `control`, `collections`, `queue`) with clear aliases. Use `autonumber` for transactional steps.
-* **Activity (Newer Beta Syntax)**: Use `start`, `stop`, `if (...) then (...) else (...) endif`, `switch (...) case (...) endswitch`, and `repeat / while (...) is (...)` loops. Do not mix with deprecated alpha syntax.
-* **State**: Use `state "State Name" as Alias`. Define transitions clearly; use `[*]` for origin and termination vectors.
+You must construct diagrams using strictly compliant syntax paths outlined in the [PlantUML Language Specification](https://plantuml.com/sitemap-language-specification).
 
-### Structural Engineering Modeling (Class, Component, Deployment, ERD)
-* **Class**: Model relationships with explicit connectors: Inheritance (`<|--`), Composition (`*--`), Aggregation (`o--`), Association (`-->`). 
-* **Component/Deployment**: Wrap subsystems within structural boundaries (`package`, `node`, `folder`, `frame`, `cloud`, `database`). Use `left to right direction` to maintain horizontal clarity. 
-* **Entity Relationship (ERD)**: Use the `entity` keyword. Map attributes using Information Engineering (IE) notation: Zero or Many (`}o--`), Exactly One (`||--||`).
+### Sequence Diagrams
+* **Participant Declaration**: Explicitly map nodes using `actor`, `boundary`, `control`, `entity`, `database`, `collections`, or `queue` with custom aliases (e.g., `participant "Business Logic" as Core`).
+* **Message Mechanics**: Synchronous/Asynchronous calls use `->`. Replies use `-->`. Bi-directional arrow notation is strictly illegal.
+* **Execution Lifelines**: Wrap logical code contexts with `activate Alias` and `deactivate Alias`.
+* **Logical Blocks**: Frame state logic exclusively with `alt/else` (conditional options), `opt` (optional paths), `loop` (iterations), and `par` (concurrent processing blocks), always concluding with an explicit `end`.
+* **Automation**: Inject `autonumber` directly below structural headers to sequentially index messages.
+
+### Activity Diagrams (New Beta Syntax Only)
+* **Lifecycle Hooks**: Every flow path must begin with `start` and finish at `stop` or `end`. Do not mix with old legacy `(*)` vectors.
+* **Execution Blocks**: Single actions must be framed using a colon and a trailing semicolon (e.g., `:Process Data;`).
+* **Conditional Logic**: Construct branching decisions exactly like this:
+  ```plantuml
+  if (Condition Evaluation?) then (true branch)
+    :Execute Action A;
+  else (false branch)
+    :Execute Action B;
+  endif
+  ```
+* **Switch Evaluation**: Route complex paths using `switch/case`:
+  ```plantuml
+  switch (Context Flag?)
+  case ( :Value A )
+    :Action A;
+  case ( :Value B )
+    :Action B;
+  endswitch
+  ```
+* **Loop Mechanics**: Use `repeat :Action; repeat while (Condition?) is (looping label)` or `while (Condition?) is (valid) :Action; endwhile`.
+* **Concurrences**: Split and merge parallel computation pipelines using `fork`, `fork again`, and `end fork`.
+
+### Class Diagrams
+* **Structural Elements**: Declare abstractions with `class`, `interface`, `abstract class`, or `enum`.
+* **Member Definitions**: Fields and operations must map visibility flags directly: `-` (private), `#` (protected), `~` (package private), and `+` (public). Appending types follows a trailing colon (e.g., `+getName(): String`).
+* **Relational Multiplicities**: Construct object interactions using exact syntax mappings:
+  * *Inheritance/Extension*: `Base <|-- Sub`
+  * *Composition*: `Parent *-- Child`
+  * *Aggregation*: `Whole o-- Part`
+  * *Directed Association*: `Client --> Server`
+
+### Component & Deployment Diagrams
+* **Boundary Contexts**: Encapsulate architectures cleanly inside structural scopes: `package`, `node`, `folder`, `frame`, `cloud`, or `database`.
+* **Component Instantiation**: Explicitly wrap individual modules inside brackets (e.g., `[API Router]`) or leverage the `component` declaration syntax.
+* **Interface Mechanics**: Bridge connections using the lollipop/socket interface layout notation (e.g., `() "HTTP API" as WebAPI`).
+
+### State Diagrams
+* **Entry/Exit Bounds**: Anchor states using `[*]` to illustrate the foundational state origin and terminal destruction loops.
+* **State Expressions**: Group behaviors into nested states by mapping brackets `state ParentState { ... }`.
+* **Transition Signals**: Bind events to routing vectors using descriptive strings following a colon (e.g., `StateA --> StateB : onClickEvent`).
 
 ---
 
@@ -206,7 +241,6 @@ network Production {
 }
 @endsalt
 ```
-
 
 # Documentation resources
 - PlantUML: https://plantuml.com
